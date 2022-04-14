@@ -3,7 +3,9 @@ const {DateTime} = require("luxon");
 
 const args = require('minimist')(process.argv.slice(2));
 
-const url = "https://clerkscheduler.cityofnewyork.us/s/sfsites/aura?r=10&aura.ApexAction.execute=1"
+const website_url = "https://clerkscheduler.cityofnewyork.us/s/MarriageCeremony"
+
+const api_url = "https://clerkscheduler.cityofnewyork.us/s/sfsites/aura?r=10&aura.ApexAction.execute=1"
 const headers = {
     "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
 }
@@ -12,7 +14,7 @@ const data = "message=%7B%22actions%22%3A%5B%7B%22id%22%3A%2289%3Ba%22%2C%22desc
 let complete = false
 
 async function fetchTimeSlots() {
-    const response = (await axios.post(url, data, {headers})).data
+    const response = (await axios.post(api_url, data, {headers})).data
 
     const slotsAvailable = [];
 
@@ -87,6 +89,27 @@ async function sendTimeSlotMessage(slots) {
             }
         })
     }
+
+    // add link to website
+    blocks.push({
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "Book an appointment"
+        },
+        "accessory": {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": "NYC Cupid",
+                "emoji": true
+            },
+            "value": "click_me_123",
+            "url": website_url,
+            "action_id": "button-action"
+        }
+    })
+
     console.log(JSON.stringify({blocks}, null, 2))
     await sendSlackMessage({blocks})
 }
