@@ -63,7 +63,7 @@ async function sendTimeSlotMessage(slots) {
     blocks.push({
         type: "divider"
     })
-    const headerText = `Status as of: ${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)}`
+    const headerText = `Status as of: ${DateTime.now().setZone('America/New_York').toLocaleString(DateTime.DATETIME_FULL)}`
     blocks.push({
         type: "section",
         text: {
