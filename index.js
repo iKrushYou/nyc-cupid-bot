@@ -9,7 +9,7 @@ const api_url = "https://clerkscheduler.cityofnewyork.us/s/sfsites/aura?r=10&aur
 const headers = {
     "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
 }
-const data = "message=%7B%22actions%22%3A%5B%7B%22id%22%3A%2289%3Ba%22%2C%22descriptor%22%3A%22aura%3A%2F%2FApexActionController%2FACTION%24execute%22%2C%22callingDescriptor%22%3A%22UNKNOWN%22%2C%22params%22%3A%7B%22namespace%22%3A%22%22%2C%22classname%22%3A%22SCHED_BookAppointmentController%22%2C%22method%22%3A%22getSlots%22%2C%22params%22%3A%7B%22isDeviceMobile%22%3Afalse%2C%22isCeremonyFlow%22%3Atrue%2C%22isLicenseFlow%22%3Afalse%2C%22isDomesticFlow%22%3Afalse%2C%22isCertificateOfNonImpediment%22%3Afalse%2C%22isRecordsRoom%22%3Afalse%2C%22isMarriageOfficiantRegistration%22%3Afalse%2C%22isPageLoad%22%3Afalse%2C%22isDateChanged%22%3Atrue%2C%22isWeekChanged%22%3Afalse%2C%22locationId%22%3A%220013d000003HJArAAO%22%2C%22selectedDate%22%3A%222022-05-04%22%2C%22selectedSlotId%22%3Anull%2C%22selectedSlotData%22%3A%22null%22%7D%2C%22cacheable%22%3Afalse%2C%22isContinuation%22%3Afalse%7D%7D%5D%7D&aura.context=%7B%22mode%22%3A%22PROD%22%2C%22fwuid%22%3A%22nj61v-uP3bGswhb-VTdr6Q%22%2C%22app%22%3A%22siteforce%3AcommunityApp%22%2C%22loaded%22%3A%7B%22APPLICATION%40markup%3A%2F%2Fsiteforce%3AcommunityApp%22%3A%22KbCmDBVbE10iCy1inwbbzA%22%2C%22COMPONENT%40markup%3A%2F%2Finstrumentation%3Ao11yCoreCollector%22%3A%22kA6gW5EadEh9qZBKZj4IqQ%22%7D%2C%22dn%22%3A%5B%5D%2C%22globals%22%3A%7B%7D%2C%22uad%22%3Afalse%7D&aura.pageURI=%2Fs%2FMarriageCeremony&aura.token=null"
+const data = "message=%7B%22actions%22%3A%5B%7B%22id%22%3A%2289%3Ba%22%2C%22descriptor%22%3A%22aura%3A%2F%2FApexActionController%2FACTION%24execute%22%2C%22callingDescriptor%22%3A%22UNKNOWN%22%2C%22params%22%3A%7B%22namespace%22%3A%22%22%2C%22classname%22%3A%22SCHED_BookAppointmentController%22%2C%22method%22%3A%22getSlots%22%2C%22params%22%3A%7B%22isDeviceMobile%22%3Afalse%2C%22isCeremonyFlow%22%3Atrue%2C%22isLicenseFlow%22%3Afalse%2C%22isDomesticFlow%22%3Afalse%2C%22isCertificateOfNonImpediment%22%3Afalse%2C%22isRecordsRoom%22%3Afalse%2C%22isMarriageOfficiantRegistration%22%3Afalse%2C%22isPageLoad%22%3Afalse%2C%22isDateChanged%22%3Atrue%2C%22isWeekChanged%22%3Afalse%2C%22locationId%22%3A%220013d000003HJArAAO%22%2C%22selectedDate%22%3A%222022-05-04%22%2C%22selectedSlotId%22%3Anull%2C%22selectedSlotData%22%3A%22null%22%7D%2C%22cacheable%22%3Afalse%2C%22isContinuation%22%3Afalse%7D%7D%5D%7D&aura.context=%7B%22mode%22%3A%22PROD%22%2C%22fwuid%22%3A%222yRFfs4WfGnFrNGn9C_dGg%22%2C%22app%22%3A%22siteforce%3AcommunityApp%22%2C%22loaded%22%3A%7B%22APPLICATION%40markup%3A%2F%2Fsiteforce%3AcommunityApp%22%3A%22KbCmDBVbE10iCy1inwbbzA%22%2C%22COMPONENT%40markup%3A%2F%2Finstrumentation%3Ao11yCoreCollector%22%3A%22kA6gW5EadEh9qZBKZj4IqQ%22%7D%2C%22dn%22%3A%5B%5D%2C%22globals%22%3A%7B%7D%2C%22uad%22%3Afalse%7D&aura.pageURI=%2Fs%2FMarriageCeremony&aura.token=null"
 
 let complete = false
 
@@ -17,6 +17,8 @@ async function fetchTimeSlots() {
     const response = (await axios.post(api_url, data, {headers})).data
 
     const slotsAvailable = [];
+
+    console.log(JSON.stringify(response, null, 2))
 
     for (const action of response.actions) {
         if (action?.returnValue?.returnValue?.daySlotsColumns) {
@@ -37,7 +39,7 @@ async function fetchTimeSlots() {
     await sendTimeSlotMessage(slotsAvailable)
 }
 
-async function sendSlackMessage({blocks}) {
+async function sendSlackMessage({text, blocks}) {
     const slackKey = args['slack-key']
     if (!slackKey) throw new Error('missing argument slackKey');
 
@@ -45,7 +47,7 @@ async function sendSlackMessage({blocks}) {
 
     const method = 'POST';
     try {
-        const response = await axios({method, url: slackWebhook, data: {blocks}})
+        const response = await axios({method, url: slackWebhook, data: {text, blocks}})
     } catch (e) {
         console.log({e})
     }
@@ -61,7 +63,8 @@ async function sendTimeSlotMessage(slots) {
         }
         datesMap[date].push(dt.toLocaleString(DateTime.TIME_SIMPLE))
     }
-    const blocks = []
+    let text = "";
+    const blocks = [];
     blocks.push({
         type: "divider"
     })
@@ -81,6 +84,7 @@ async function sendTimeSlotMessage(slots) {
                 text: `${dateHeader} (${dates.length})`
             }
         })
+        text += `${dateHeader} (${dates.length}) `
         blocks.push({
             type: "section",
             text: {
@@ -110,8 +114,8 @@ async function sendTimeSlotMessage(slots) {
         }
     })
 
-    console.log(JSON.stringify({blocks}, null, 2))
-    await sendSlackMessage({blocks})
+    console.log(JSON.stringify({text, blocks}, null, 2))
+    await sendSlackMessage({text, blocks})
 }
 
 fetchTimeSlots()
