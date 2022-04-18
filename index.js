@@ -57,7 +57,7 @@ async function sendTimeSlotMessage(slots) {
     const datesMap = {};
     for (const slot of slots) {
         const dt = DateTime.fromISO(slot.startDateTime)
-        const date = dt.toLocaleString(DateTime.DATE_FULL)
+        const date = dt.toFormat("EEE, MMM d y") //dt.toLocaleString(DateTime.DATE_FULL)
         if (!datesMap[date]) {
             datesMap[date] = []
         }
@@ -76,6 +76,16 @@ async function sendTimeSlotMessage(slots) {
             text: headerText
         }
     })
+    if (Object.entries(datesMap).length === 0) {
+        text = "No Appointments"
+        blocks.push({
+            type: "header",
+            text: {
+                type: "plain_text",
+                text: `No Appointments`
+            }
+        })
+    }
     for (const [dateHeader, dates] of Object.entries(datesMap)) {
         blocks.push({
             type: "header",
