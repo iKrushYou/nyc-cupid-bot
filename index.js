@@ -56,7 +56,7 @@ async function sendSlackMessage({text, blocks}) {
 async function sendTimeSlotMessage(slots) {
     const datesMap = {};
     for (const slot of slots) {
-        const dt = DateTime.fromISO(slot.startDateTime)
+        const dt = DateTime.fromISO(slot.startDateTime).setZone('America/New_York')
         const date = dt.toFormat("EEE, MMM d y") //dt.toLocaleString(DateTime.DATE_FULL)
         if (!datesMap[date]) {
             datesMap[date] = []
